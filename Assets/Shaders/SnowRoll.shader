@@ -47,9 +47,18 @@ Shader "Custom/SnowRoll"
                 return OUT;
             }
 
+            // this is the fragment function
             half4 frag(Varyings IN) : SV_Target
             {
-                half4 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv) * _BaseColor;
+                // get UVs
+                float2 uv = IN.uv.xy;
+
+                // before sampling texture, replace ONE component
+                float speed = 0.25;
+                uv.y = frac(uv.y + _Time.y * speed); // vertical roll/scroll/slide that repeats
+
+                // use uv in SAMPLE_TEXTURE2D instead of original IN.uv
+                half4 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv) * _BaseColor;
                 return color;
             }
             ENDHLSL
