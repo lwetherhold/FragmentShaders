@@ -47,6 +47,12 @@ Shader "Custom/SnowRoll"
                 return OUT;
             }
 
+            // add random (snow) noise based on function given by prof
+            float randomNoise2(float2 seed)
+            {
+                return frac(sin(dot(seed, float2(12.9898, 78.233))) * 43758.5453);
+            }
+
             // this is the fragment function
             half4 frag(Varyings IN) : SV_Target
             {
