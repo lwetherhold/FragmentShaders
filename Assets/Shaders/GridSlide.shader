@@ -52,6 +52,9 @@ Shader "Custom/GridSlide"
                 // get UVs
                 //float2 uv = IN.uv.xy; // UV texture coordinates of the current pixel, normalized to [0, 1] (left->right, bottom->top on the mesh)
 
+                // NOTE: the word "quadrant" can be easily replaced by "tile" or "cell"
+                //       I just used "quadrant" because I wanted to FIRST test out the shader on a smaller 2x2 grid scale
+
                 /*
                 // QUADRANT TILING VALIDATION
                 // color to set a quadrant to, used for debugging purposes / to prove tiling by quadrants is working
@@ -96,10 +99,19 @@ Shader "Custom/GridSlide"
                 else                     return half4(1, 1, 0.6, 1); // phase 3: yellow
                 */
 
-                // determine the destination quadrant (based on current pixel uv)
+                // determine the destination tile (based on current pixel uv)
                 float2 uv = IN.uv.xy; // UV texture coordinates of the current pixel, normalized to [0, 1] (left->right, bottom->top on the mesh)
-                float2 uvLocal = frac(uv * 2.0); // local coordinates inside the 0.5x0.5 quadrant [0, 1]
+                float gridCount = 4.0; // number of tiles in the grid on one side of the square
 
+                // local UV coordinates inside each tile [0, 1], repeating across the entire grid
+                float2 uvLocal = frac(uv * gridCount); // local coordinates inside the grid [0, 1]
+
+                // TEMPORARY: show gridCount^2 repeated copies of the texture for debugging/validation purposes
+                half4 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uvLocal) * _BaseColor;
+                return color;
+
+                /*
+                // IMPLEMENTATION OF A FAULTY GRID SLIDE EFFECT FOR A 2X2 GRID
                 // destIndex: 0=bottom-left, 1=bottom-right, 2=top-left, 3=top-right
                 float xSide = step(0.5, uv.x);
                 float ySide = step(0.5, uv.y);
@@ -123,6 +135,7 @@ Shader "Custom/GridSlide"
 
                 // return the final color
                 return color;
+                */
             }
             ENDHLSL
         }
