@@ -42,9 +42,10 @@ Shader "Custom/SwirlFade"
             CBUFFER_START(UnityPerMaterial)
                 half4 _BaseColor;
                 float4 _BaseMap_ST;
-                // only needed if TRANSFORM_TEX() is used on the second texture
-                float4 _SecondMap_ST; // second texture's scale and offset
                 float _SwirlAmount; // strength/amount of the swirl effect
+                // UNUSED
+                // only needed if TRANSFORM_TEX() is used on the second texture
+                //float4 _SecondMap_ST; // second texture's scale and offset
             CBUFFER_END
 
             Varyings vert(Attributes IN)
@@ -60,7 +61,7 @@ Shader "Custom/SwirlFade"
                 // same UV for both textures
                 // center UVs -> the center (0.5, 0.5) of the texture stays fixed, and pixels farther out rotate MORE
                 float2 uv = IN.uv.xy; // UV texture coordinates of the current pixel, normalized to [0, 1] (left->right, bottom->top on the mesh)
-                float2 offsetFromCenter = uv - 0.5f; // moves the origin to the middle of the texture so that (0, 0) is the center of the texture
+                float2 offsetFromCenter = uv - 0.5f; // moves the origin to the middle of the plane so that (0, 0) is the center of the texture
                                                      // rotating offsetFromCenter spins the image around the center of the texture (instead of around the corner)
 
                 // speed of the fade and swirl effects
@@ -95,11 +96,11 @@ Shader "Custom/SwirlFade"
                 // after rotating, we need to add the offset from the center back to the rotated offset
                 float2 uvSwirl = rotated + 0.5f; // add 0.5f back to UV space to get the final UV coordinates
 
-                // then sample both tetures with the swirled UV coordinates
+                // then sample both textures with the swirled UV coordinates
                 half4 imageA = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uvSwirl) * _BaseColor; // base texture
                 half4 imageB = SAMPLE_TEXTURE2D(_SecondMap, sampler_SecondMap, uvSwirl); // second texture
                 
-                // NOTE: original code has no twist / swirl effect, only the fade effect
+                // NOTE: original code below has no twist / swirl effect, only the fade effect
                 // sample the two textures
                 //half4 imageA = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv) * _BaseColor; // base texture
                 //half4 imageB = SAMPLE_TEXTURE2D(_SecondMap, sampler_SecondMap, uv); // second texture
