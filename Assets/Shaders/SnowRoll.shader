@@ -97,9 +97,9 @@ Shader "Custom/SnowRoll"
                 // NOTE: mist is a subtle effect that adds a light layer of snow to the texture
                 //       it is built from a random noise function that is scaled and time-shifted
                 //       the noise is then smoothed and lerped onto the texture to create a light layer of snow
-                float mist = randomNoise2(uvSnow * 30.0 + _Time.y);
-                mist = smoothstep(0.3, 0.9, mist); // tuned for how foggy the mist appears
-                color.rgb = lerp(color.rgb, half3(1,1,1), mist * 0.53f);
+                float mist = randomNoise2(uvSnow * 30.0 + _Time.y); // create mist from random noise
+                mist = smoothstep(0.3, 0.9, mist); // smoothstep() keeps only rare high values which turns into soft fog intensity or how foggy the mist appears
+                color.rgb = lerp(color.rgb, half3(1,1,1), mist * 0.53f); // lerp() makes white snow mist that is still noticeable on bright parts of the texture
 
                 // NOTE: removed the scroll on uvImage since it is duplicated here from when we used two UV pairs above (the one for image specifically)
                 // before sampling texture, replace ONE component
