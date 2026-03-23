@@ -67,6 +67,7 @@ Shader "Custom/GridSlide"
                 // use smooth phase motion so that the image movement is continuous and not jumpy
                 float phaseOffset = 1.0; // phase offset to align the whole image with the shaders video
                                          // shifts which moment the whole image lines up
+                float phaseSpeed = 1.0; // speed of the phase change, higher = faster
                 float phaseContinuous = _Time.y * phaseSpeed + phaseOffset; // time-based phase progression
                 float phaseIndex = floor(fmod(phaseContinuous, 4.0)); // 0,1,2,3 repeating
                 float phaseProgress = frac(phaseContinuous); // progress within the current phase [0, 1)
