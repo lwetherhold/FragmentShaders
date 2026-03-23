@@ -50,7 +50,7 @@ Shader "Custom/GridSlide"
             half4 frag(Varyings IN) : SV_Target
             {
                 // get UVs
-                float2 uv = IN.uv.xy; // UV texture coordinates of the current pixel, normalized to [0, 1] (left->right, bottom->top on the mesh)
+                //float2 uv = IN.uv.xy; // UV texture coordinates of the current pixel, normalized to [0, 1] (left->right, bottom->top on the mesh)
 
                 /*
                 // QUADRANT TILING VALIDATION
@@ -86,15 +86,43 @@ Shader "Custom/GridSlide"
                                                    // fmod() is the modulo operator, gives the remainder of the division
                                                    // 4.0 is the number of phases, so the phase will repeat every 4 seconds
 
+                /*
+                // PHASE CYCLE TESTING
                 // test that phase cycle works by returning different tints PER PHASE (before any sliding is added)
                 // the colors will cycle through the 4 states in order, and then repeat
                 if (phase < 0.5)         return half4(1, 0.6, 0.6, 1); // phase 0: red
                 else if (phase < 1.5)    return half4(0.6, 1, 0.6, 1); // phase 1: green
                 else if (phase < 2.5)    return half4(0.6, 0.6, 1, 1); // phase 2: blue
                 else                     return half4(1, 1, 0.6, 1); // phase 3: yellow
+                */
 
-                //half4 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv) * _BaseColor;
-                //return color;
+                // determine the destination quadrant (based on current pixel uv)
+                float2 uv = IN.uv.xy; // UV texture coordinates of the current pixel, normalized to [0, 1] (left->right, bottom->top on the mesh)
+                float2 uvLocal = frac(uv * 2.0); // local coordinates inside the 0.5x0.5 quadrant [0, 1]
+
+                // destIndex: 0=bottom-left, 1=bottom-right, 2=top-left, 3=top-right
+                float xSide = step(0.5, uv.x);
+                float ySide = step(0.5, uv.y);
+                float destIndex = ySide * 2.0 + xSide;
+                
+                // choose source quadrant PER PHASE so that when phase==3, it returns to identity (phase 0)
+                float srcIndex = fmod(destIndex + (3.0 - phase), 4.0);
+
+                // map source index to source origin (top/bottom + left/right origins for each of the 4 quadrants)
+                float2 srcOrigin;
+                if (srcIndex < 0.5)         srcOrigin = float2(0.0, 0.0); // 0: bottom-left
+                else if (srcIndex < 1.5)    srcOrigin = float2(0.5, 0.0); // 1: bottom-right
+                else if (srcIndex < 2.5)    srcOrigin = float2(0.0, 0.5); // 2: top-left
+                else                        srcOrigin = float2(0.5, 0.5); // 3: top-right
+
+                // next, convert local coordinates back into a full [0, 1] UV coordinate for sampling the texture
+                float2 uvSample = srcOrigin + uvLocal * 0.5; // multiply by 0.5 to get the full [0, 1] UV coordinate
+
+                // sample the texture with the uvSample coordinate
+                half4 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uvSample) * _BaseColor;
+
+                // return the final color
+                return color;
             }
             ENDHLSL
         }
