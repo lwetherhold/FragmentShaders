@@ -110,6 +110,8 @@ Shader "Custom/SnowRoll"
                 //color.rgb = lerp(color.rgb, 1.0, flake * 0.7); // 0.7 is the strength of the flakes
                                                                // lerp() makes white snow that still pops out on bright parts of the texture
                 color.rgb = lerp(color.rgb, half3(1,1,1), flake * 0.8f); // stronger white mix
+
+                // return the final color
                 return color;
             }
             ENDHLSL
