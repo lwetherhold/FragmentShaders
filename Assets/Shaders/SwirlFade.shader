@@ -4,6 +4,7 @@ Shader "Custom/SwirlFade"
     {
         [MainColor] _BaseColor("Base Color", Color) = (1, 1, 1, 1)
         [MainTexture] _BaseMap("Base Map", 2D) = "white" {}
+        [MainTexture] _SecondMap("Second Map", 2D) = "white" {}
     }
 
     SubShader
