@@ -73,7 +73,7 @@ Shader "Custom/SnowRoll"
 
                 // use two UV pairs (one for image)
                 float2 uvImage = IN.uv.xy; // UV texture coordinates of the current pixel, normalized to [0, 1] (left->right, bottom->top on the mesh)
-                uvImage.y = frac (uvImage.y + _Time.y * speedImage);
+                uvImage.y = frac (uvImage.y - _Time.y * speedImage); // roll the image up instead of down (+ -> -)
 
                 // use uv in SAMPLE_TEXTURE2D instead of original IN.uv
                 half4 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uvImage) * _BaseColor; // sample the texture with uvImage
@@ -91,7 +91,7 @@ Shader "Custom/SnowRoll"
                 // then turn noise into flakes with a threshold (bright dots)
                 //float flake = smoothstep(0.97, 1.0, noise); // 0.97 is the amount of noise that will be turned into flakes
                                                            // smoothstep() keeps only rare high values which turns into sparse bright dots
-                float flake = smoothstep(0.65, 0.98, noise); // soften/widen the flake gate (for more flakes)
+                float flake = smoothstep(0.60, 0.93, noise); // soften/widen the flake gate (for more flakes)
 
                 // the mist layer acts as a second noise of lower frequency with a smaller lerp toward white so the whole frame lifts toward white without just sharp, tiny dots
                 // NOTE: mist is a subtle effect that adds a light layer of snow to the texture
@@ -110,7 +110,7 @@ Shader "Custom/SnowRoll"
                 // by lerping toward white using flake
                 //color.rgb = lerp(color.rgb, 1.0, flake * 0.7); // 0.7 is the strength of the flakes
                                                                // lerp() makes white snow that still pops out on bright parts of the texture
-                color.rgb = lerp(color.rgb, half3(1,1,1), flake * 0.8f); // stronger white mix
+                color.rgb = lerp(color.rgb, half3(1,1,1), flake * 0.6f); // stronger white mix
 
                 // return the final color
                 return color;
