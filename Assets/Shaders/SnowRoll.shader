@@ -47,7 +47,10 @@ Shader "Custom/SnowRoll"
                 return OUT;
             }
 
+            // helper function to generate random noise for frag() function
             // add random (snow) noise based on function given by prof
+            // NOTE: prof uses the name randomNoise2() in the lecture slides PDF
+            //       the 2 indicates that the seed is float2 (2D)
             float randomNoise2(float2 seed)
             {
                 return frac(sin(dot(seed, float2(12.9898, 78.233))) * 43758.5453);
@@ -56,15 +59,47 @@ Shader "Custom/SnowRoll"
             // this is the fragment function
             half4 frag(Varyings IN) : SV_Target
             {
+                // NOTE: snow noise will be visible on light AND dark parts of the texture
+
+                // NOTE: we will be doing screen-style or screen-space snow
+                //       texture uses scrolled UVs while snow uses unscrolled UVs (from IN.uv) + time
+                //       -> image rolls, but snow stays in ITS OWN pattern on the texture, like real snow in front of the screen itself
+
                 // get UVs
-                float2 uv = IN.uv.xy;
+                //float2 uv = IN.uv.xy;
+
+                float speedImage = 0.25;
+
+                // use two UV pairs (one for image)
+                float2 uvImage = IN.uv.xy;
+                uvImage.y = frac (uvImage.y + _Time.y * speedImage);
+
+                // use two UV pairs (one for snow)
+                float2 uvSnow = IN.uv.xy; // there is no frac() roll here so that snow space is on the plane of the texture
+
+                // after computing uv for the roll
+                // build a new seed that changes over space + time for the snowing effect (vs static grain)
+                float2 snowSeed = uvSnow * 200.0; // creates density
+                                              // build snowSeed from uvSnow (scale + time), NOT from uvImage (which is scrolled)
+                snowSeed += float2(_Time.y * 3.0, _Time.y * 1.7); // creates drift
+                float noise = randomNoise2(snowSeed); // randomNoise2() gives 0-1 "random" from a seed without storing any state
+
+                // then turn noise into flakes with a threshold (bright dots)
+                //float flake = smoothstep(0.97, 1.0, noise); // 0.97 is the amount of noise that will be turned into flakes
+                                                           // smoothstep() keeps only rare high values which turns into sparse bright dots
+                float flake = smoothstep(0.75, 0.98, noise); // soften the flake gate (for more flakes)
 
                 // before sampling texture, replace ONE component
-                float speed = 0.25;
-                uv.y = frac(uv.y + _Time.y * speed); // vertical roll/scroll/slide that repeats
+                uvImage.y = frac(uvImage.y + _Time.y * speedImage); // vertical roll/scroll/slide that repeats
+                                                                    // sample the texture with uvImage
 
                 // use uv in SAMPLE_TEXTURE2D instead of original IN.uv
-                half4 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv) * _BaseColor;
+                half4 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uvImage) * _BaseColor; // sample the texture with uvImage
+                // blend onto the texture so flakes are not invisible on white
+                // by lerping toward white using flake
+                //color.rgb = lerp(color.rgb, 1.0, flake * 0.7); // 0.7 is the strength of the flakes
+                                                               // lerp() makes white snow that still pops out on bright parts of the texture
+                color.rgb = lerp(color.rgb, half3(1,1,1), flake * 0.95f); // stronger white mix
                 return color;
             }
             ENDHLSL
