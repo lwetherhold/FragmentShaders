@@ -49,8 +49,35 @@ Shader "Custom/GridSlide"
 
             half4 frag(Varyings IN) : SV_Target
             {
-                half4 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv) * _BaseColor;
-                return color;
+                // get UVs
+                float2 uv = IN.uv.xy; // UV texture coordinates of the current pixel, normalized to [0, 1] (left->right, bottom->top on the mesh)
+
+                // color to set a quadrant to, used for debugging purposes / to prove tiling by quadrants is working
+                half4 quadColor;
+
+                // compute which quadrant each pixel is in
+                if (uv.x < 0.5 && uv.y < 0.5) // bottom-left
+                {
+                    quadColor = half4(1, 0, 0, 1); // red
+                }
+                else if (uv.x >= 0.5 && uv.y < 0.5) // bottom-right
+                {
+                    quadColor = half4(0, 1, 0, 1); // green
+                }
+                else if (uv.x < 0.5 && uv.y >= 0.5) // top-left
+                {
+                    quadColor = half4(0, 0, 1, 1); // blue
+                }
+                else // top-right
+                {
+                    quadColor = half4(1, 1, 0, 1); // yellow
+                }
+
+                return quadColor;
+
+
+                //half4 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv) * _BaseColor;
+                //return color;
             }
             ENDHLSL
         }

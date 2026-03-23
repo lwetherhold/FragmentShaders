@@ -68,10 +68,11 @@ Shader "Custom/SnowRoll"
                 // get UVs
                 //float2 uv = IN.uv.xy;
 
+                // speed of the image roll
                 float speedImage = 0.25;
 
                 // use two UV pairs (one for image)
-                float2 uvImage = IN.uv.xy;
+                float2 uvImage = IN.uv.xy; // UV texture coordinates of the current pixel, normalized to [0, 1] (left->right, bottom->top on the mesh)
                 uvImage.y = frac (uvImage.y + _Time.y * speedImage);
 
                 // use uv in SAMPLE_TEXTURE2D instead of original IN.uv
