@@ -84,17 +84,27 @@ Shader "Custom/SnowRoll"
                 snowSeed += float2(_Time.y * 3.0, _Time.y * 1.7); // creates drift
                 float noise = randomNoise2(snowSeed); // randomNoise2() gives 0-1 "random" from a seed without storing any state
 
+                // use uv in SAMPLE_TEXTURE2D instead of original IN.uv
+                half4 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uvImage) * _BaseColor; // sample the texture with uvImage
+
+                // the mist layer acts as a second noise of lower frequency with a smaller lerp toward white so the whole frame lifts toward white without just sharp, tiny dots
+                // NOTE: mist is a subtle effect that adds a light layer of snow to the texture
+                //       it is built from a random noise function that is scaled and time-shifted
+                //       the noise is then smoothed and lerped onto the texture to create a light layer of snow
+                float mist = randomNoise2(uvSnow * 30.0 + _Time.y);
+                mist = smoothstep(0.3, 0.9, mist); // tuned for how foggy the mist appears
+                color.rgb = lerp(color.rgb, half3(1,1,1), mist * 0.35f);
+
                 // then turn noise into flakes with a threshold (bright dots)
                 //float flake = smoothstep(0.97, 1.0, noise); // 0.97 is the amount of noise that will be turned into flakes
                                                            // smoothstep() keeps only rare high values which turns into sparse bright dots
                 float flake = smoothstep(0.75, 0.98, noise); // soften the flake gate (for more flakes)
 
+                // NOTE: removed the scroll on uvImage since it is duplicated here from when we used two UV pairs above (the one for image specifically)
                 // before sampling texture, replace ONE component
-                uvImage.y = frac(uvImage.y + _Time.y * speedImage); // vertical roll/scroll/slide that repeats
+                //uvImage.y = frac(uvImage.y + _Time.y * speedImage); // vertical roll/scroll/slide that repeats
                                                                     // sample the texture with uvImage
 
-                // use uv in SAMPLE_TEXTURE2D instead of original IN.uv
-                half4 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uvImage) * _BaseColor; // sample the texture with uvImage
                 // blend onto the texture so flakes are not invisible on white
                 // by lerping toward white using flake
                 //color.rgb = lerp(color.rgb, 1.0, flake * 0.7); // 0.7 is the strength of the flakes
