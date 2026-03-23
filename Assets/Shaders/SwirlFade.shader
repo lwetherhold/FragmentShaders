@@ -63,18 +63,25 @@ Shader "Custom/SwirlFade"
                 float2 offsetFromCenter = uv - 0.5f; // moves the origin to the middle of the texture so that (0, 0) is the center of the texture
                                                      // rotating offsetFromCenter spins the image around the center of the texture (instead of around the corner)
 
+                // speed of the fade and swirl effects
+                float speed = 0.5f; // lower = slower fade and swirl
+                                    // same speed -> same phase shift between fade and swirl
+
                 // FADE EFFECT VARIABLES
+                // NOTE: syncing fade and swirl speeds to have a shared speed variable
                 // speed of the fade effect
-                float speedFade = 0.5f; // lower = slower crossfade
+                //float speedFade = 0.5f; // lower = slower crossfade
+
+                // NOTE: syncing fade and swirl speeds to have a shared speed variable
+                // speed of the swirl effect
+                //float speedSwirl = 0.5f; // lower = slower swirl
 
                 // SWIRL EFFECT VARIABLES
-                // speed of the swirl effect
-                float speedSwirl = 0.5f; // lower = slower swirl
                 // radius of the swirl effect
                 float radius = length(offsetFromCenter); // length() is the distance from the center (0.5, 0.5) of the texture to the current pixel
                                                          // makes edges move more than the center
                 // angle of the swirl effect
-                float angleSwirl = radius * _SwirlAmount * sin(_Time.y * speedSwirl); // stronger swirl over time * stronger swirl for large strength
+                float angleSwirl = radius * _SwirlAmount * sin(_Time.y * speed); // stronger swirl over time * stronger swirl for large strength
 
                 // 2D rotation of offsetFromCenter
                 float cosAngleSwirl = cos(angleSwirl);
@@ -98,7 +105,7 @@ Shader "Custom/SwirlFade"
                 //half4 imageB = SAMPLE_TEXTURE2D(_SecondMap, sampler_SecondMap, uv); // second texture
 
                 // weight to blend between the two textures
-                float weight = (sin(_Time.y * speedFade) + 1.0f) * 0.5f; // sin() ranges from -1 to 1, so we add 1 and divide by 2 to get a value between 0 and 1
+                float weight = (sin(_Time.y * speed) + 1.0f) * 0.5f; // sin() ranges from -1 to 1, so we add 1 and divide by 2 to get a value between 0 and 1
                                                                          // taken from the lecture slides PDF shown in class
                                                                          // alternatively, a student in class proposed the equation: 
                                                                          // y = sin(x)^2 or sin^2(x)
